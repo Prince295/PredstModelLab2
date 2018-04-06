@@ -65,7 +65,7 @@ class MovingPics():
         menu_form = Navs(parent)
         menu_form.pack(side = 'left', expand = True, fill = 'both')
         canvas.pack(side = 'right', expand = True, fill = 'both')
-        button =[None, None, None, None, None, None]
+        button =[None, None, None, None, None, None,None]
 
         button[0]=ThemedButton(menu_form, text = 'Открыть файл')
         button[1]=ThemedButton(menu_form, text = 'Добавить сущность')
@@ -73,6 +73,7 @@ class MovingPics():
         button[3]=ThemedButton(menu_form, text = 'Сохранить связь')
         button[5]=ThemedButton(menu_form, text = 'Сохранить файл')
         button[4]=ThemedButton(menu_form, text = 'Удалить связь')
+        button[6]=ThemedButton(menu_form, text = 'Показать/скрыть связи')
 
         for i in range(len(button)):
             button[i].pack(in_ = menu_form, side = 'top', padx = 10, pady = 10, expand = True, fill = 'both')
@@ -88,6 +89,8 @@ class MovingPics():
         button[3].config(command = self.saveObject)
         button[4].config(command = self.deleteNet)
         button[5].config(command = self.savePostscript)
+        button[6].config(command = self.show_hide_text)
+
 
 
         canvas.bind('<Button-1>',   self.onStart)
@@ -108,7 +111,7 @@ class MovingPics():
         self.var1 = var1
         self.flag = 0
         self.line ={}
-        self.uniq = {}
+        self.uniq = []
 
         self.id1 = 0
         self.id2 = 0
@@ -120,7 +123,7 @@ class MovingPics():
         parent.title('Семантические сети')
         parent.protocol('WM_DELETE_WINDOW', self.onQuit)
         self.realquit = parent.quit
-        self.textInfo = self.canvas.create_text(5,5, anchor = 'nw', font = HelpFont, text='Press ? for help')
+        # self.textInfo = self.canvas.create_text(5,5, anchor = 'nw', font = HelpFont, text='Press ? for help')
 
 
     def add_text_widget(self):
@@ -145,30 +148,12 @@ class MovingPics():
         self.uniq = []
         self.variables={}
         self.objects={}
-        self.canvas.create_text( 5, 5, anchor='nw', font=HelpFont, text='Press ? for help' )
+        # self.canvas.create_text( 5, 5, anchor='nw', font=HelpFont, text='Press ? for help' )
         f1 = open( 'temp', 'rb' )
         saving = pickle.load( f1 )
         f1.close()
 
         for key, val in saving.items():
-                    if val['type'] == 'line':
-                        self.canvas.create_line(int(val['x1']),
-                                                int(val['y1']), int(val['x2']),
-                                        int(val['y2']), fill=colors[val['value']], width=pickWidths[0],arrow = 'last')
-                        self.id1 = self.canvas.find_overlapping( val['x1'] - 10, val['y1'] - 10, val['x1'] + 10,
-                                                      val['y1'] + 10 )[0]
-                        self.id2 = self.canvas.find_overlapping( val['x2'] - 2, val['y2'] - 2, val['x2'] + 2, val['y2'] + 2 )[0]
-                        self.id3 = self.canvas.find_overlapping( val['x2'] - 2, val['y2'] - 2, val['x2'] + 2, val['y2'] + 2 )[1]
-                        self.objects[self.canvas.find_all()[len( self.canvas.find_all() ) - 1]] = self.object
-                        self.line[self.id3] = val['value']
-                        self.seq[self.id3] = meanings[val['value']]
-                        if val['net']:
-                            self.variables[val['net']]={self.id1 : self.objects[self.id1].get(),
-                                                        self.id3 : self.seq[self.id3],
-                                                        self.id2 : self.objects[self.id2].get()
-                                                         }
-                        if val['net'] > self.flag:
-                            self.flag = val['net']
 
                     if val['type'] == 'window':
                         var = StringVar()
@@ -180,8 +165,42 @@ class MovingPics():
                                                                  window=text
                                                                  )
                         self.objects[self.object] = text
+        for key, val in saving.items():
+            if val['type'] == 'line':
+                self.canvas.create_line( int( val['x1'] ),
+                                         int( val['y1'] ), int( val['x2'] ),
+                                         int( val['y2'] ), fill=colors[val['value']], width=pickWidths[0], arrow='last' )
+                self.id1 = self.canvas.find_overlapping( val['x1'] - 10, val['y1'] - 10, val['x1'] + 10,
+                                                         val['y1'] + 10 )[0]
+                self.id2 = self.canvas.find_overlapping( val['x2'] - 2, val['y2'] - 2, val['x2'] + 2, val['y2'] + 2 )[0]
+                self.id3 = self.canvas.find_overlapping( val['x2'] - 2, val['y2'] - 2, val['x2'] + 2, val['y2'] + 2 )[1]
+                self.objects[self.canvas.find_all()[len( self.canvas.find_all() ) - 1]] = self.object
+                self.line[self.id3] = val['value']
+                self.seq[self.id3] = meanings[val['value']]
+                if val['net']:
+                    self.variables[val['net']] = {self.id1: self.objects[self.id1].get(),
+                                                  self.id3: self.seq[self.id3],
+                                                  self.id2: self.objects[self.id2].get()
+                                                  }
+                    x1, y1, x2, y2 = self.canvas.coords( self.id3 )
+                    self.canvas.create_text( (x1 + x2) / 2, (y1 + y2) / 2, text=self.seq[self.id3] )
+
+                if val['net'] > self.flag:
+                    self.flag = val['net']
+
         self.flag+=1
         saving.clear()
+
+
+    def show_hide_text(self):
+        arr = self.canvas.find_all()
+        for i in range(len(arr)):
+            if self.canvas.type(arr[i]) == 'text':
+                config=self.canvas.itemconfig(arr[i])['fill']
+                if config[len(config)-1] == 'black':
+                     self.canvas.itemconfig(arr[i], fill = 'white')
+                else:
+                     self.canvas.itemconfig( arr[i],fill ='black')
 
 
     def deleteNet(self):
@@ -204,6 +223,8 @@ class MovingPics():
                 self.variables[self.flag] = {self.id1 : self.objects[self.id1].get(),
                                     self.id3 : self.seq[self.id3],
                                     self.id2 : self.objects[self.id2].get()}
+                x1,y1,x2,y2 = self.canvas.coords(self.id3)
+                self.canvas.create_text( (x1+x2)/2, (y1+y2)/2, text = self.seq[self.id3])
 
                 self.flag += 1
 
