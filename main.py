@@ -313,10 +313,9 @@ class MovingPics():
 
     def deleteObject(self,event):
         canvas = event.widget
-        if self.object != self.textInfo:
-            self.canvas.delete(self.object)
-            self.objects.pop(self.object)
-            self.object = None
+        self.canvas.delete(self.object)
+        self.objects.pop(self.object)
+        self.object = None
 
 
     def changeObject(self, event):
@@ -334,7 +333,7 @@ class MovingPics():
 
                 self.canvas.create_window( int( x ), int( y ), window=self.objects[self.object] )
                 self.canvas.delete( prev )
-                self.object = None
+                self.object = self.canvas.find_all()[len(self.canvas.find_all())- 1]
                 return
             if self.objects[self.object]['state'] == 'disabled':
                 prev = self.object
@@ -343,7 +342,7 @@ class MovingPics():
 
                 self.canvas.create_window( int( x ), int( y ), window=self.objects[self.object] )
                 self.canvas.delete( prev )
-                self.object = None
+                self.object = self.canvas.find_all() [len( self.canvas.find_all() ) - 1 ]
                 return
 
 
