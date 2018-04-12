@@ -65,7 +65,7 @@ class MovingPics():
         menu_form = Navs(parent)
         menu_form.pack(side = 'left', expand = True, fill = 'both')
         canvas.pack(side = 'right', expand = True, fill = 'both')
-        button =[None, None, None, None, None, None,None]
+        button =[None, None, None, None, None, None,None,None]
 
         button[0]=ThemedButton(menu_form, text = 'Открыть файл')
         button[1]=ThemedButton(menu_form, text = 'Добавить сущность')
@@ -74,6 +74,7 @@ class MovingPics():
         button[5]=ThemedButton(menu_form, text = 'Сохранить файл')
         button[4]=ThemedButton(menu_form, text = 'Удалить связь')
         button[6]=ThemedButton(menu_form, text = 'Показать/скрыть связи')
+        button[7]=ThemedButton(menu_form, text = 'Поиск на графе')
 
         for i in range(len(button)):
             button[i].pack(in_ = menu_form, side = 'top', padx = 10, pady = 10, expand = True, fill = 'both')
@@ -90,6 +91,7 @@ class MovingPics():
         button[4].config(command = self.deleteNet)
         button[5].config(command = self.savePostscript)
         button[6].config(command = self.show_hide_text)
+        button[7].config(command = self.find)
 
 
 
@@ -116,6 +118,7 @@ class MovingPics():
         self.id1 = 0
         self.id2 = 0
         self.id3 = 0
+        self.var3 = StringVar()
 
         self.object = None
         self.prev_object = None
@@ -126,9 +129,55 @@ class MovingPics():
         self.realquit = parent.quit
         # self.textInfo = self.canvas.create_text(5,5, anchor = 'nw', font = HelpFont, text='Press ? for help')
 
+    def find(self):
+        toplevel = Toplevel()
+        form = Forms( toplevel )
+        form.pack( fill='both', expand=True )
+        container = Container( form )
+        container.pack()
+        container1 = Container( form)
+        container.pack()
+        text_widget = ThemedMessage1( container1 )
+        text_widget.pack()
+        text_widget.config( textvariable=self.var3 )
+        entry2 = ThemedMessage1( container )
+        entry1 = ThemedMessage1( container )
+
+        button1 = interface.Button(container)
+        button1.config(text = "Поиск", command = lambda : self.find_path(entry1.get(),entry2.get(),text_widget))
+        button1.pack()
+
+        var1 = StringVar()
+        var2 = StringVar()
+        entry1.config( textvariable=var1 )
+        entry2.config( textvariable=var2 )
+
+    def find_path(self,entry1, entry2,text_widget):
+            dict1 = []
+            self.var3.set('')
+
+            begin = None
+            target = None
+            for v in self.objects.values():
+                if type(v) != int:
+                    dict1.append(v.get())
+
+                for k, v in self.objects.items():
+                    if type( v ) != int:
+                        if v.get() == entry1:
+                            begin = k
+                        if v.get() == entry2:
+                            target = k
+            if begin and target:
+                self.object = begin
+                self.prev_object = target
+                self.add_text_widget()
+            else:
+                self.var3.set("Ничего не найдено")
 
     def add_text_widget(self):
         toplevel = Toplevel()
+
         text_widget = ThemedText(toplevel)
         text_widget.pack()
 
@@ -174,7 +223,7 @@ class MovingPics():
                 path1 = find( dic, stack, begin, path, previos_targets )
                 if path1 != None:
                     return path1
-
+            true_path = []
             arr = find( hights, [target], begin, path, previos_targets )
             true_path = [arr[1]]
             true_path.append( arr[0] )
