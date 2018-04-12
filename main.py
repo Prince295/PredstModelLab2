@@ -179,7 +179,7 @@ class MovingPics():
             true_path = [arr[1]]
             true_path.append( arr[0] )
             while True:
-                if arr[0] in hights[1]:
+                if arr[0] in hights[target]:
                     break
                 path = []
                 path1 = []
