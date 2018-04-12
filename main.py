@@ -118,6 +118,7 @@ class MovingPics():
         self.id3 = 0
 
         self.object = None
+        self.prev_object = None
         self.where = None
         self.scribbleMode = 0
         parent.title('Семантические сети')
@@ -130,18 +131,85 @@ class MovingPics():
         toplevel = Toplevel()
         text_widget = ThemedText(toplevel)
         text_widget.pack()
-        for k,v in self.variables.items():
-            string = ''
-            f = True
-            a = 0
-            for key, val in v.items():
-                if a != 1:
-                    string += " - {} - ".format(self.objects[key].get())
-                else:
-                    string += " - {} - ".format( self.seq[key] )
-                a+=1
-            if f == True:
-                text_widget.insert('{}.0'.format(k+1), string + '\n')
+
+        hights = {}
+        value = []
+        for v in self.variables.values():
+            value.append(v)
+        for i in range(len(value)):
+            value1 = []
+            for k in value[i].keys():
+                value1.append(k)
+            hights[value1[0]] = []
+            for j in range(len(value)):
+                value2 = []
+                for k in value[j].keys():
+                    value2.append( k )
+                if value1[0] == value2[0]:
+                    hights[value1[0]].append(value2[2])
+                    hights[value1[0]] = list(set(hights[value1[0]]))
+
+        if self.canvas.type(self.object) == 'window' and self.canvas.type(self.prev_object)=='window':
+            begin = self.prev_object
+            target = self.object
+
+            path = []
+            path1 = []
+            previos_targets = []
+
+            def find(dic, target, begin, path, previos_targets):
+                stack = []
+                for i in range( len( target ) ):
+                    for k, v in dic.items():
+                        if target[i] in v:
+                            if target[i] not in previos_targets:
+                                stack.append( k )
+                    previos_targets.append( target[i] )
+                    if begin in stack:
+                        previos_targets = list( set( previos_targets ) )
+
+                        path.append( target[i] )
+                        path.append( begin )
+                        return path
+                path1 = find( dic, stack, begin, path, previos_targets )
+                if path1 != None:
+                    return path1
+
+            arr = find( hights, [target], begin, path, previos_targets )
+            true_path = [arr[1]]
+            true_path.append( arr[0] )
+            while True:
+                if arr[0] in hights[1]:
+                    break
+                path = []
+                path1 = []
+                previos_targets = []
+                arr = find( hights, [target], arr[0], path, previos_targets )
+                true_path.append( arr[0] )
+
+            true_path.append( target )
+
+
+            for k, v in self.variables.items():
+                string = ''
+                f = True
+                a = 1
+                arr1 = []
+                index = k
+                for key, val in v.items():
+                    arr1.append(key)
+                    if a % 2 != 0:
+                        string += " - {} - ".format( self.objects[key].get() )
+                    else:
+                        string += " - {} - ".format( self.seq[key] )
+                    a += 1
+                for i in range(len(true_path)-1):
+                    if true_path[i] == arr1[0] and true_path[i+1] == arr1[2]:
+                        text_widget.insert( '{}.0'.format( k + 1 ), string + '\n' )
+            string ='Путь : '
+            for i in range(len(true_path)):
+                string += " - {} - ".format( self.objects[true_path[i]].get() )
+            text_widget.insert( '{}.0'.format( index + 2 ), string + '\n' )
 
     def loadObject(self):
         self.canvas.delete('all')
@@ -278,6 +346,7 @@ class MovingPics():
 
     def onSelect(self, event):
         self.where = event
+        self.prev_object = self.object
         self.object = self.canvas.find_closest(event.x, event.y)[0]
 
 
