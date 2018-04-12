@@ -22,7 +22,7 @@ if sys.platform[:3] == 'win':
 else:
     HelpFont = ('courier', 12, 'normal')
 
-pickDelays = [0.01, 0.025, 0.05, 0.10, 0.25, 0.0, 0.001, 0.005]
+pickDelays = [0.01, 0.025, 0.05, 0.15, 0.25, 0.0, 0.001, 0.005]
 pickUnits = [1,2,4,6,8,10,12]
 pickWidths = [1,2,5,10,20]
 pickFills = [None, 'while', 'blue', 'red', 'black', 'yellow', 'green', 'purple']
